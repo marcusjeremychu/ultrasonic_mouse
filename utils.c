@@ -11,8 +11,8 @@ long get_time_microsec() {
   return (curr_time.tv_sec * (int)1e6) + curr_time.tv_usec;
 }
 
-void pulse_trigger() {
-  bcm2835_gpio_write(PIN_TRIGGER, HIGH);
+void pulse_trigger(int trigger_pin) {
+  bcm2835_gpio_write(trigger_pin, HIGH);
   bcm2835_delayMicroseconds(10);
-  bcm2835_gpio_write(PIN_TRIGGER, LOW);
+  bcm2835_gpio_write(trigger_pin, LOW);
 }
