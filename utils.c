@@ -1,9 +1,8 @@
+#include "utils.h"
 #include <bcm2835.h>
 #include <stdio.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include "utils.h"
-
 
 long get_time_microsec() {
   struct timeval curr_time;

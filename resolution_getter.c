@@ -1,14 +1,15 @@
-// Code based off https://raspberrycompote.blogspot.com/2012/12/low-level-graphics-on-raspberry-pi-part_9509.html
+// Code based off
+// https://raspberrycompote.blogspot.com/2012/12/low-level-graphics-on-raspberry-pi-part_9509.html
 
-#include <unistd.h>
+#include "resolution_getter.h"
+#include <fcntl.h>
+#include <linux/fb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
-#include <linux/fb.h>
-#include <sys/mman.h>
 #include <sys/ioctl.h>
-#include "resolution_getter.h"
+#include <sys/mman.h>
+#include <unistd.h>
 
 struct resolution get_resolution() {
   struct resolution res;
@@ -31,10 +32,9 @@ struct resolution get_resolution() {
 
   res.xres = var_info.xres;
   res.yres = var_info.yres;
-  
-  // close file  
-  close(fbfd);
-  
-  return res;
 
+  // close file
+  close(fbfd);
+
+  return res;
 }

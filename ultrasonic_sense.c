@@ -1,11 +1,11 @@
-#include "utils.h"
 #include "ultrasonic_sense.h"
+#include "utils.h"
 #include <bcm2835.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 
 // completes one pulse cycle to get the range, needs a trigger first
 // this is for a single pin
@@ -23,7 +23,8 @@ long get_range(int echo_pin) {
   while (bcm2835_gpio_lev(echo_pin) == HIGH) {
     end_time = get_time_microsec();
     if (end_time - start_time > MAX_ECHO_WAITTIME) {
-      printf("Echo took too long to come back down..., %d pin failed.\n", echo_pin);
+      printf("Echo took too long to come back down..., %d pin failed.\n",
+             echo_pin);
       return -1;
     }
   }
@@ -34,7 +35,6 @@ long get_range(int echo_pin) {
   } else {
     return range_cm;
   }
-  
 }
 
 void *threaded_range(void *echo_pin) {
