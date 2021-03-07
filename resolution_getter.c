@@ -23,15 +23,12 @@ struct resolution get_resolution() {
     res.yres = -1;
     return res;
   }
-  //printf("The framebuffer device opened.\n");
 
   // Get variable screen information
   if (ioctl(fbfd, FBIOGET_VSCREENINFO, &var_info)) {
     printf("Error reading variable screen info.\n");
   }
-  // printf("Display info %dx%d, %d bpp\n", 
-  //        var_info.xres, var_info.yres, 
-  //        var_info.bits_per_pixel );
+
   res.xres = var_info.xres;
   res.yres = var_info.yres;
   

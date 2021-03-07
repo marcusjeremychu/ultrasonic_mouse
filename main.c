@@ -12,28 +12,50 @@
 
 // These are for scaling the mouse inputs. They are kind of like mouse sensitvity parameters.
 #define MAX_THRESHOLD 50
-#define MIN_THRESHOLD 7
+#define MIN_THRESHOLD 5
 
-#define Q 0.00001
-#define R 0.003
+// Kalman Filter Parameters
+// Code based off: https://towardsdatascience.com/a-simple-kalman-filter-implementation-e13f75987195
+#define Q 0.5 // Transition Error ie. process noise
+#define R 3 // Measurement Error
+int predicted_y_prev = 0;
+double p_prev_y = 1; 
 
-int y_hat_k_minus_1;
-int P_k_minus_1;
-
-int kalman_filter(int measured_y){
+int kalman_filter_y(int measured_y){
     //prediction
-    int y_hat_k_a_priori = y_hat_k_minus_1;
-    int P_k_a_priori = P_k_minus_1 + Q;
+    double y_hat_k_a_priori = predicted_y_prev;
+    double P_k_a_priori = p_prev_y + Q;
     
     //innovation 
-    int K_k = P_k_a_priori * (P_k_a_priori + R);
-    int y_hat_k = y_hat_k_a_priori + K_k * (measured_y - y_hat_k_a_priori);
-    int P_k = (1 - K_k) * P_k_a_priori;
+    double K_k = P_k_a_priori / (P_k_a_priori + R);
+    double y_hat_k = y_hat_k_a_priori + K_k * (measured_y - y_hat_k_a_priori);
+    double P_k = (1 - K_k) * P_k_a_priori;
     
     // save previous variables
-    y_hat_k_minus_1 = y_hat_k;
-    P_k_minus_1 = P_k;
+    predicted_y_prev = (int) y_hat_k;
+    p_prev_y = P_k;
     return y_hat_k;
+}
+
+#define Q_x 0.5 // Transition Error ie. process noise
+#define R_x 5 // Measurement Error
+int predicted_x_prev = 0;
+double p_prev_x = 1; 
+
+int kalman_filter_x(int measured_x){
+    //prediction
+    double x_hat_k_a_priori = predicted_x_prev;
+    double P_k_a_priori = p_prev_x + Q_x;
+    
+    //innovation 
+    double K_k = P_k_a_priori / (P_k_a_priori + R_x);
+    double x_hat_k = x_hat_k_a_priori + K_k * (measured_x - x_hat_k_a_priori);
+    double P_k = (1 - K_k) * P_k_a_priori;
+    
+    // save previous variables
+    predicted_x_prev = (int) x_hat_k;
+    p_prev_x = P_k;
+    return x_hat_k;
 }
 
 int main(void) {
@@ -51,6 +73,7 @@ int main(void) {
   for (int i = 0 ; i < NUMBER_OF_SENSORS; i++) {
     x_bins[i] = i * x_bin_step;
   }
+  printf("y_scaling_factor: %f",  y_scaling_factor);
   
   pthread_t thread_id_1, thread_id_2, thread_id_3, thread_id_4, 
             thread_id_5, thread_id_6, thread_id_7, thread_id_8;
@@ -59,8 +82,6 @@ int main(void) {
 
   int x_coordinate = 0;
   int y_coordinate = 0;
-  y_hat_k_minus_1 = 0;
-  P_k_minus_1 = 0;
 
   // main control loop
   while (1) {
@@ -96,7 +117,7 @@ int main(void) {
     int position_sum = 0;
     int num_detected = 0;
     for (int i = 0; i < NUMBER_OF_SENSORS; i++) {
-      if (responses[i] < y_scaling_factor && responses[i] >= MIN_THRESHOLD) {
+      if (responses[i] < MAX_THRESHOLD && responses[i] >= MIN_THRESHOLD) {
         position_sum += i;
         num_detected++;
       }
@@ -104,9 +125,9 @@ int main(void) {
     
     if (num_detected != 0) {
       int predicted_x_bin = (int) (position_sum/num_detected);
-      x_coordinate = x_bins[predicted_x_bin];
+      x_coordinate = kalman_filter_x(x_bins[predicted_x_bin]);
       int sensor_y = res.yres - (int)(responses[predicted_x_bin] * y_scaling_factor);
-      y_coordinate = kalman_filter(sensor_y);
+      y_coordinate = kalman_filter_y(sensor_y);
     }
 
     printf("Coordinates: (x=%d, y=%d)\n", x_coordinate, y_coordinate);
